@@ -29,6 +29,12 @@ public class TestLauncher {
                 // Добавляем селекторы для запуска тестов по классам, по пакетам
                 .selectors(DiscoverySelectors.selectClass(UserServiceTest.class))
                 .selectors(DiscoverySelectors.selectPackage("ru.pastest.junit.service"))
+//                .filters(
+//                        //Включаем или исключаем теги из тестирования:
+//                        // .\gradlew clean test -DincludeTags='login'
+////                        TagFilter.excludeTags("login")
+//                        TagFilter.includeTags("login")
+//                )
                 .build();
 
         // Запускаем тесты

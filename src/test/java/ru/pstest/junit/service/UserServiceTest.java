@@ -9,12 +9,15 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasKey;
-import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.*;
 
-/**@TestInstance(TestInstance.Lifecycle.PER_METHOD) - для каждого мктода будет осздаваться свой инстанс данного класса
+/**@TestInstance(TestInstance.Lifecycle.PER_METHOD) - для каждого метода будет осздаваться свой инстанс данного класса
  * В этом случае @BeforeAll и @AfterAll дожны быть статическими
  * @TestInstance(TestInstance.Lifecycle.PER_CLASS) - инстанс создается единожды для класса и запускаются методы
+ *
+ * Используем Jacoco для тестирования с процентом покрытия: Run 'TestClass' with Coverage
  */
+@Tag("fast")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class UserServiceTest {
 
@@ -33,6 +36,29 @@ class UserServiceTest {
         userService = new UserService();
     }
 
+    //Тестируем с использованием эксепшенов
+    @Test
+    void throwExceptionIfUsernameOrPasswordIsNull() {
+        // method implementation
+        try {
+            userService.login(null, "dummy");
+            fail("Login should throw exception");
+        } catch (IllegalArgumentException ex) {
+            assertTrue(true);
+        }
+
+        //junit5 version:
+        assertAll(
+                () -> {
+                    var exception = assertThrows(IllegalArgumentException.class, () -> userService.login(null, "dummy"));
+                    //Проверяем сообщение эксепшена
+                    assertThat(exception.getMessage()).isEqualTo("username or password is null");
+                },
+                () -> assertThrows(IllegalArgumentException.class, () -> userService.login("dummy", null))
+        );
+
+    }
+
     @Test
     void userListEmptyIfNoUserAdded() {
         System.out.println("Test1: " + this);
@@ -43,6 +69,7 @@ class UserServiceTest {
 //        assertAll(); - объединить сразу несколько ассертов, которые будут проверены, чтобы тест не падал при первом же фейле.
     }
 
+    @Tag("login")
     @Test
     void loginSuccessIfUserExists() {
         userService.add(IVAN);
@@ -54,6 +81,7 @@ class UserServiceTest {
         maybeUser.ifPresent( user -> assertThat(user).isEqualTo(IVAN));
     }
 
+    @Tag("login")
     @Test
     void loginFailedIfPasswordIsNotCorrect() {
         userService.add(IVAN);
@@ -64,6 +92,7 @@ class UserServiceTest {
         assertThat(maybeUser).isEmpty();
     }
 
+    @Tag("login")
     @Test
     void loginFailedIfUserNotExists() {
         userService.add(IVAN);
