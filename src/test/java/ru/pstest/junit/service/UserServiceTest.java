@@ -16,9 +16,17 @@ import static org.junit.jupiter.api.Assertions.*;
  * @TestInstance(TestInstance.Lifecycle.PER_CLASS) - инстанс создается единожды для класса и запускаются методы
  *
  * Используем Jacoco для тестирования с процентом покрытия: Run 'TestClass' with Coverage
+ *
+ * Порядок запуска тестов:
+ * @TestMethodOrder(MethodOrderer.Random.class) - запуск тестов в случайном порядке
+ * @TestMethodOrder(MethodOrderer.OrderAnnotation.class) - помечаем тесты аннотацией @Order(num) чтобы задать порядок
+ * @TestMethodOrder(MethodOrderer.MethodName.class) - запускаем тесты в алфавитном порядке по имени метода
+ * @TestMethodOrder(MethodOrderer.DisplayName.class) - запускаем тесты в алфавитном порядке из аннотации @DisplayName("text")
+ *
  */
-@Tag("fast")
+@TestMethodOrder(MethodOrderer.DisplayName.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Tag("fast")
 class UserServiceTest {
 
     private static final User IVAN = User.of(1, "Ivan", "123");
@@ -36,29 +44,9 @@ class UserServiceTest {
         userService = new UserService();
     }
 
-    //Тестируем с использованием эксепшенов
-    @Test
-    void throwExceptionIfUsernameOrPasswordIsNull() {
-        // method implementation
-        try {
-            userService.login(null, "dummy");
-            fail("Login should throw exception");
-        } catch (IllegalArgumentException ex) {
-            assertTrue(true);
-        }
 
-        //junit5 version:
-        assertAll(
-                () -> {
-                    var exception = assertThrows(IllegalArgumentException.class, () -> userService.login(null, "dummy"));
-                    //Проверяем сообщение эксепшена
-                    assertThat(exception.getMessage()).isEqualTo("username or password is null");
-                },
-                () -> assertThrows(IllegalArgumentException.class, () -> userService.login("dummy", null))
-        );
 
-    }
-
+    @DisplayName("2. Если пользователь не добавлен, то коллекция пустая")
     @Test
     void userListEmptyIfNoUserAdded() {
         System.out.println("Test1: " + this);
@@ -67,40 +55,6 @@ class UserServiceTest {
         assertThat(userList).isEmpty();
 
 //        assertAll(); - объединить сразу несколько ассертов, которые будут проверены, чтобы тест не падал при первом же фейле.
-    }
-
-    @Tag("login")
-    @Test
-    void loginSuccessIfUserExists() {
-        userService.add(IVAN);
-        Optional<User> maybeUser = userService.login(IVAN.getUserName(), IVAN.getPassword());
-
-//        assertTrue(maybeUser.isPresent());
-//        maybeUser.ifPresent( user -> assertEquals(IVAN, user));
-        assertThat(maybeUser).isPresent();
-        maybeUser.ifPresent( user -> assertThat(user).isEqualTo(IVAN));
-    }
-
-    @Tag("login")
-    @Test
-    void loginFailedIfPasswordIsNotCorrect() {
-        userService.add(IVAN);
-
-        var maybeUser = userService.login(IVAN.getUserName(), "dummy");
-
-//        assertTrue(maybeUser.isEmpty());
-        assertThat(maybeUser).isEmpty();
-    }
-
-    @Tag("login")
-    @Test
-    void loginFailedIfUserNotExists() {
-        userService.add(IVAN);
-
-        var maybeUser = userService.login("dummy", IVAN.getPassword());
-
-//        assertTrue(maybeUser.isEmpty());
-        assertThat(maybeUser).isEmpty();
     }
 
     @Test
@@ -147,5 +101,65 @@ class UserServiceTest {
     @AfterAll
     void closeAll() {
         System.out.println("After all: " + this);
+    }
+
+    @Nested
+    @Tag("login")
+    @DisplayName("Проверка функциональности логина")
+    class LoginTest {
+        //Тестируем с использованием эксепшенов
+        @Test
+        void throwExceptionIfUsernameOrPasswordIsNull() {
+            // method implementation
+            try {
+                userService.login(null, "dummy");
+                fail("Login should throw exception");
+            } catch (IllegalArgumentException ex) {
+                assertTrue(true);
+            }
+
+            //junit5 version:
+            assertAll(
+                    () -> {
+                        var exception = assertThrows(IllegalArgumentException.class, () -> userService.login(null, "dummy"));
+                        //Проверяем сообщение эксепшена
+                        assertThat(exception.getMessage()).isEqualTo("username or password is null");
+                    },
+                    () -> assertThrows(IllegalArgumentException.class, () -> userService.login("dummy", null))
+            );
+
+        }
+
+        @Test
+        @DisplayName("1. Проверяем успешный логин, если юзер существует")
+        void loginSuccessIfUserExists() {
+            userService.add(IVAN);
+            Optional<User> maybeUser = userService.login(IVAN.getUserName(), IVAN.getPassword());
+
+//        assertTrue(maybeUser.isPresent());
+//        maybeUser.ifPresent( user -> assertEquals(IVAN, user));
+            assertThat(maybeUser).isPresent();
+            maybeUser.ifPresent( user -> assertThat(user).isEqualTo(IVAN));
+        }
+
+        @Test
+        void loginFailedIfPasswordIsNotCorrect() {
+            userService.add(IVAN);
+
+            var maybeUser = userService.login(IVAN.getUserName(), "dummy");
+
+//        assertTrue(maybeUser.isEmpty());
+            assertThat(maybeUser).isEmpty();
+        }
+
+        @Test
+        void loginFailedIfUserNotExists() {
+            userService.add(IVAN);
+
+            var maybeUser = userService.login("dummy", IVAN.getPassword());
+
+//        assertTrue(maybeUser.isEmpty());
+            assertThat(maybeUser).isEmpty();
+        }
     }
 }
