@@ -2,30 +2,38 @@ package ru.pstest.junit.service;
 
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.*;
 import ru.pstest.junit.dto.User;
+import ru.pstest.junit.service.paramresolver.UserServiceParameterResolver;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasKey;
 import static org.junit.jupiter.api.Assertions.*;
 
-/**@TestInstance(TestInstance.Lifecycle.PER_METHOD) - для каждого метода будет осздаваться свой инстанс данного класса
+/**
+ * @TestInstance(TestInstance.Lifecycle.PER_METHOD) - для каждого метода будет осздаваться свой инстанс данного класса
  * В этом случае @BeforeAll и @AfterAll дожны быть статическими
  * @TestInstance(TestInstance.Lifecycle.PER_CLASS) - инстанс создается единожды для класса и запускаются методы
- *
+ * <p>
  * Используем Jacoco для тестирования с процентом покрытия: Run 'TestClass' with Coverage
- *
+ * <p>
  * Порядок запуска тестов:
  * @TestMethodOrder(MethodOrderer.Random.class) - запуск тестов в случайном порядке
  * @TestMethodOrder(MethodOrderer.OrderAnnotation.class) - помечаем тесты аннотацией @Order(num) чтобы задать порядок
  * @TestMethodOrder(MethodOrderer.MethodName.class) - запускаем тесты в алфавитном порядке по имени метода
  * @TestMethodOrder(MethodOrderer.DisplayName.class) - запускаем тесты в алфавитном порядке из аннотации @DisplayName("text")
- *
  */
 @TestMethodOrder(MethodOrderer.DisplayName.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ExtendWith({
+        UserServiceParameterResolver.class
+})
 @Tag("fast")
 class UserServiceTest {
 
@@ -33,22 +41,25 @@ class UserServiceTest {
     private static final User PETR = User.of(2, "Petr", "111");
     private UserService userService;
 
+    UserServiceTest(TestInfo testInfo) {
+        System.out.println("testInfo here");
+    }
+
     @BeforeAll
     void init() {
         System.out.println("Before all: " + this);
     }
 
     @BeforeEach
-    void prepare() {
+    void prepare(UserService userService) {
         System.out.println("Before each: " + this);
-        userService = new UserService();
+        this.userService = new UserService();
     }
-
 
 
     @DisplayName("2. Если пользователь не добавлен, то коллекция пустая")
     @Test
-    void userListEmptyIfNoUserAdded() {
+    void userListEmptyIfNoUserAdded(UserService userService) {
         System.out.println("Test1: " + this);
         var userList = userService.getAll();
 //        assertTrue(userList.isEmpty());
@@ -70,7 +81,7 @@ class UserServiceTest {
 
     // Использование AssertJ
     @Test
-    void usersConvertedToMapByID(){
+    void usersConvertedToMapByID() {
         userService.add(IVAN, PETR);
 
         Map<Integer, User> users = userService.getAllConvertedByID();
@@ -83,7 +94,7 @@ class UserServiceTest {
 
     //Использование Hamcrest
     @Test
-    void usersConvertedToMapByIDByHamcrest(){
+    void usersConvertedToMapByIDByHamcrest() {
         userService.add(IVAN, PETR);
 
         Map<Integer, User> users = userService.getAllConvertedByID();
@@ -139,7 +150,7 @@ class UserServiceTest {
 //        assertTrue(maybeUser.isPresent());
 //        maybeUser.ifPresent( user -> assertEquals(IVAN, user));
             assertThat(maybeUser).isPresent();
-            maybeUser.ifPresent( user -> assertThat(user).isEqualTo(IVAN));
+            maybeUser.ifPresent(user -> assertThat(user).isEqualTo(IVAN));
         }
 
         @Test
@@ -161,5 +172,58 @@ class UserServiceTest {
 //        assertTrue(maybeUser.isEmpty());
             assertThat(maybeUser).isEmpty();
         }
+
+        @ParameterizedTest
+        /**
+         * Аннотации используют один аргумент
+         *
+         * @NullSource
+         * @EmptySource
+         *
+         * @NullAndEmptySource - для коллекций
+         * @ValueSource - для примитивов - @ValueSource(strings = {"Ivan, Petr"})
+         * @EnumSource - для енамов
+         */
+
+        @MethodSource("ru.pstest.junit.service.UserServiceTest#getArgumentsForLoginTest")
+        void loginParametrizedTest(String userName, String password, Optional<User> user) {
+            userService.add(IVAN, PETR);
+            var maybeUser = userService.login(userName, password);
+
+            assertThat(maybeUser).isEqualTo(user);
+        }
+
+        @ParameterizedTest(name = "{arguments} test done!!!")
+        @CsvFileSource(resources = "/login-test-data.csv", delimiter = ',', numLinesToSkip = 1)
+        void loginParametrizedTestWithCSVFile(String userName, String password) {
+            userService.add(IVAN, PETR);
+            System.out.println(userName + " - " + password);
+            User maybeUser = userService.login(userName, password).get();
+
+            assertThat(maybeUser).isIn(userService.getAll());
+        }
+        @ParameterizedTest
+        @DisplayName("Login test with CSV Source ")
+        @CsvSource(value = {
+                "Ivan,123",
+                "Petr,111"
+        }, delimiter = ',')
+        void loginParametrizedTestWithCSVSource(String userName, String password) {
+            userService.add(IVAN, PETR);
+            System.out.println(userName + " - " + password);
+            User maybeUser = userService.login(userName, password).get();
+
+            assertThat(maybeUser).isIn(userService.getAll());
+        }
+
+    }
+
+    static Stream<Arguments> getArgumentsForLoginTest() {
+        return Stream.of(
+                Arguments.of("Ivan", "123", Optional.of(IVAN)),
+                Arguments.of("Petr", "111", Optional.of(PETR)),
+                Arguments.of("Ivan", "dummy", Optional.empty()),
+                Arguments.of("dummy", "123", Optional.empty())
+        );
     }
 }
