@@ -1,4 +1,4 @@
-package ru.pstest.junit.service;
+package ru.pstest.junit;
 
 import org.junit.platform.commons.PreconditionViolationException;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
@@ -7,6 +7,7 @@ import org.junit.platform.launcher.LauncherDiscoveryRequest;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 import org.junit.platform.launcher.listeners.SummaryGeneratingListener;
+import ru.pstest.junit.service.UserServiceTest;
 
 import java.io.PrintWriter;
 
@@ -28,7 +29,7 @@ public class TestLauncher {
                 .request()
                 // Добавляем селекторы для запуска тестов по классам, по пакетам
                 .selectors(DiscoverySelectors.selectClass(UserServiceTest.class))
-                .selectors(DiscoverySelectors.selectPackage("ru.pastest.junit.service"))
+                .selectors(DiscoverySelectors.selectPackage("ru.pstest.junit.service"))
 //                .filters(
 //                        //Включаем или исключаем теги из тестирования:
 //                        // .\gradlew clean test -DincludeTags='login'

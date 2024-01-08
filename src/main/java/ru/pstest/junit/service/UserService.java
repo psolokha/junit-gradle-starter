@@ -1,5 +1,6 @@
 package ru.pstest.junit.service;
 
+import lombok.Getter;
 import ru.pstest.junit.dto.User;
 
 import java.util.*;

@@ -5,9 +5,12 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.*;
+import ru.pstest.junit.TestBase;
 import ru.pstest.junit.dto.User;
-import ru.pstest.junit.service.paramresolver.UserServiceParameterResolver;
+import ru.pstest.junit.extension.*;
 
+import java.io.IOException;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -31,11 +34,17 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @TestMethodOrder(MethodOrderer.DisplayName.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+//Аналог @RunWith
 @ExtendWith({
-        UserServiceParameterResolver.class
+        UserServiceParameterResolver.class,
+        PostProcessingExtension.class,
+        ConditionalExtension.class,
+        ThrowableExtension.class
+        //Этот класс экстендится от родительского TestBase
+//        GlobalExtension.class
 })
 @Tag("fast")
-class UserServiceTest {
+public class UserServiceTest extends TestBase {
 
     private static final User IVAN = User.of(1, "Ivan", "123");
     private static final User PETR = User.of(2, "Petr", "111");
@@ -59,7 +68,7 @@ class UserServiceTest {
 
     @DisplayName("2. Если пользователь не добавлен, то коллекция пустая")
     @Test
-    void userListEmptyIfNoUserAdded(UserService userService) {
+    void userListEmptyIfNoUserAdded(UserService userService) throws IOException {
         System.out.println("Test1: " + this);
         var userList = userService.getAll();
 //        assertTrue(userList.isEmpty());
@@ -164,7 +173,25 @@ class UserServiceTest {
         }
 
         @Test
-        void loginFailedIfUserNotExists() {
+        @Timeout(200)
+        /**
+         * Используется что-то одно:
+         * или аннотация, или assertTimeout
+         */
+        void checkLoginFunctionalityPerformance() {
+            var result = assertTimeout(Duration.ofMillis(200L),
+                    () -> {
+                        Thread.sleep(100);
+                        return userService.login("dummy", IVAN.getPassword());
+                    });
+        }
+
+        @RepeatedTest(value = 7, name = RepeatedTest.LONG_DISPLAY_NAME)
+        /**
+         * Удобный способ запускать тест несколько раз и видеть в дебаггере
+         * на какой итерации происходит падение
+         */
+        void loginFailedIfUserNotExists(RepetitionInfo repetitionInfo) {
             userService.add(IVAN);
 
             var maybeUser = userService.login("dummy", IVAN.getPassword());
@@ -202,6 +229,7 @@ class UserServiceTest {
 
             assertThat(maybeUser).isIn(userService.getAll());
         }
+
         @ParameterizedTest
         @DisplayName("Login test with CSV Source ")
         @CsvSource(value = {

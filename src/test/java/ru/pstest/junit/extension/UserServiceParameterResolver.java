@@ -1,4 +1,4 @@
-package ru.pstest.junit.service.paramresolver;
+package ru.pstest.junit.extension;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
