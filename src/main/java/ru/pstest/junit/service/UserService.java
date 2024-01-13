@@ -1,6 +1,7 @@
 package ru.pstest.junit.service;
 
 import lombok.Getter;
+import ru.pstest.junit.dao.UserDao;
 import ru.pstest.junit.dto.User;
 
 import java.util.*;
@@ -11,6 +12,15 @@ import static java.util.stream.Collectors.toMap;
 public class UserService {
 
     private final List<User> users = new ArrayList<>();
+    private final UserDao userDao;
+
+    public UserService(UserDao userDao) {
+        this.userDao = userDao;
+    }
+
+    public boolean delete(Integer userId) {
+        return userDao.delete(userId);
+    }
 
     public List<User> getAll() {
         return users;

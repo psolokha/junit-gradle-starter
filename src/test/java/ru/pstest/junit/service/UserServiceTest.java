@@ -5,7 +5,10 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.*;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 import ru.pstest.junit.TestBase;
+import ru.pstest.junit.dao.UserDao;
 import ru.pstest.junit.dto.User;
 import ru.pstest.junit.extension.*;
 
@@ -20,7 +23,7 @@ import static org.hamcrest.Matchers.hasKey;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * @TestInstance(TestInstance.Lifecycle.PER_METHOD) - для каждого метода будет осздаваться свой инстанс данного класса
+ * @TestInstance(TestInstance.Lifecycle.PER_METHOD) - для каждого метода будет создаваться свой инстанс данного класса
  * В этом случае @BeforeAll и @AfterAll дожны быть статическими
  * @TestInstance(TestInstance.Lifecycle.PER_CLASS) - инстанс создается единожды для класса и запускаются методы
  * <p>
@@ -39,7 +42,9 @@ import static org.junit.jupiter.api.Assertions.*;
         UserServiceParameterResolver.class,
         PostProcessingExtension.class,
         ConditionalExtension.class,
-        ThrowableExtension.class
+        //Чтобы работали аннотации Mockito
+        MockitoExtension.class
+//        ThrowableExtension.class
         //Этот класс экстендится от родительского TestBase
 //        GlobalExtension.class
 })
@@ -48,7 +53,12 @@ public class UserServiceTest extends TestBase {
 
     private static final User IVAN = User.of(1, "Ivan", "123");
     private static final User PETR = User.of(2, "Petr", "111");
+    @InjectMocks
     private UserService userService;
+    @Mock
+    private UserDao userDao;
+    @Captor
+    private ArgumentCaptor<Integer> captor;
 
     UserServiceTest(TestInfo testInfo) {
         System.out.println("testInfo here");
@@ -62,7 +72,10 @@ public class UserServiceTest extends TestBase {
     @BeforeEach
     void prepare(UserService userService) {
         System.out.println("Before each: " + this);
-        this.userService = new UserService();
+        //После того как развесили аннотации, нам больше это не нужно
+//        this.userDao = Mockito.mock(UserDao.class);
+//        this.userDao = Mockito.spy(new UserDao());
+//        this.userService = new UserService(userDao);
     }
 
 
@@ -121,6 +134,31 @@ public class UserServiceTest extends TestBase {
     @AfterAll
     void closeAll() {
         System.out.println("After all: " + this);
+    }
+
+    /**
+     * Использование Mockito
+     */
+    @Test
+    void shouldDeleteExistedUser() {
+        userService.add(IVAN);
+        //Для spy()
+        Mockito.doReturn(true).when(userDao).delete(IVAN.getId());
+        //Для mock()
+//        Mockito.when(userDao.delete(IVAN.getId()))
+//                .thenReturn(true)
+//                .thenReturn(false);
+        boolean deleteResult = userService.delete(IVAN.getId());
+        System.out.println(userService.delete(IVAN.getId()));
+        System.out.println(userService.delete(IVAN.getId()));
+
+        //Проверить с какими аргументами вызывался метод
+//        ArgumentCaptor<Integer> integerArgumentCaptor = ArgumentCaptor.forClass(Integer.class);
+
+        //Убедимся, что метод вызывался три раза
+        Mockito.verify(userDao, Mockito.times(3)).delete(captor.capture());
+        assertThat(captor.getValue()).isEqualTo(IVAN.getId());
+        assertThat(deleteResult).isTrue();
     }
 
     @Nested
