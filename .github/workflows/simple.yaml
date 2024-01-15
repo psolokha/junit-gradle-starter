@@ -1,6 +1,6 @@
 name: simple-ui-test
 run-name: junit-gradle-starter-simple-ui-test
-on: [ push ]
+on: workflow_dispatch
 jobs:
   test: #job name
     runs-on: ubuntu-latest #where to run
