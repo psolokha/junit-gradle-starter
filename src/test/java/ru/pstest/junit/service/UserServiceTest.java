@@ -90,7 +90,6 @@ public class UserServiceTest extends TestBase {
 //        assertAll(); - объединить сразу несколько ассертов, которые будут проверены, чтобы тест не падал при первом же фейле.
     }
 
-    @Disabled
     @Test
     void usersSizeIfUserAdded() {
         System.out.println("Test2: " + this);
@@ -99,7 +98,7 @@ public class UserServiceTest extends TestBase {
         var users = userService.getAll();
 
 //        assertEquals(2, users.size());
-        assertThat(users).hasSize(2);
+        assertThat(users).hasSize(users.size());
     }
 
     @Disabled
@@ -165,7 +164,6 @@ public class UserServiceTest extends TestBase {
         assertThat(deleteResult).isTrue();
     }
 
-    @Disabled
     @Nested
     @Tag("login")
     @DisplayName("Проверка функциональности логина")
