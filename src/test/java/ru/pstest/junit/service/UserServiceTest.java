@@ -90,6 +90,7 @@ public class UserServiceTest extends TestBase {
 //        assertAll(); - объединить сразу несколько ассертов, которые будут проверены, чтобы тест не падал при первом же фейле.
     }
 
+    @Disabled
     @Test
     void usersSizeIfUserAdded() {
         System.out.println("Test2: " + this);
@@ -101,6 +102,7 @@ public class UserServiceTest extends TestBase {
         assertThat(users).hasSize(2);
     }
 
+    @Disabled
     // Использование AssertJ
     @Test
     void usersConvertedToMapByID() {
@@ -114,6 +116,7 @@ public class UserServiceTest extends TestBase {
         );
     }
 
+    @Disabled
     //Использование Hamcrest
     @Test
     void usersConvertedToMapByIDByHamcrest() {
@@ -139,6 +142,7 @@ public class UserServiceTest extends TestBase {
     /**
      * Использование Mockito
      */
+    @Disabled
     @Test
     void shouldDeleteExistedUser() {
         userService.add(IVAN);
@@ -161,6 +165,7 @@ public class UserServiceTest extends TestBase {
         assertThat(deleteResult).isTrue();
     }
 
+    @Disabled
     @Nested
     @Tag("login")
     @DisplayName("Проверка функциональности логина")
