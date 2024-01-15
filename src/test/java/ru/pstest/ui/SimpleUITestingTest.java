@@ -17,6 +17,8 @@ public class SimpleUITestingTest {
 
         $(By.xpath("//textarea")).sendKeys("tratata");
         $(By.xpath("//textarea")).submit();
+        //Ломаем тест
+        $("").click();
 
     }
 

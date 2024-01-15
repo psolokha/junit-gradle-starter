@@ -101,7 +101,7 @@ public class UserServiceTest extends TestBase {
         assertThat(users).hasSize(users.size());
     }
 
-    @Disabled
+
     // Использование AssertJ
     @Test
     void usersConvertedToMapByID() {
@@ -115,7 +115,6 @@ public class UserServiceTest extends TestBase {
         );
     }
 
-    @Disabled
     //Использование Hamcrest
     @Test
     void usersConvertedToMapByIDByHamcrest() {
@@ -141,7 +140,6 @@ public class UserServiceTest extends TestBase {
     /**
      * Использование Mockito
      */
-    @Disabled
     @Test
     void shouldDeleteExistedUser() {
         userService.add(IVAN);
