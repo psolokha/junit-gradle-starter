@@ -1,0 +1,13 @@
+name: simple-ui-test
+run-name: junit-gradle-starter-simple-ui-test
+on: [push]
+jobs:
+  test: #job name
+    runs-on: ubuntu-latest #where to run
+    steps:
+      - uses: actions/checkout@v4 #checkout repo
+      - uses: actions/setup-java@v4 #setup java
+        with:
+          distribution: 'zulu' # See 'Supported distributions' for available options
+          java-version: '18'
+      - run: ./gradlew clean test #run string
