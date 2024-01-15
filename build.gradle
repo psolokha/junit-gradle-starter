@@ -38,6 +38,7 @@ test {
     } else {
         useJUnitPlatform {includeTags includedTagsString}
     }
+    systemProperties(System.getProperties())
 //            {
 //        includeTags 'login'
 //    }
