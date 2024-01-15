@@ -1,5 +1,5 @@
 name: simple-ui-test
-run-name: junit-gradle-starter-simple-ui-test
+#run-name: junit-gradle-starter-simple-ui-test
 on: workflow_dispatch
 jobs:
   test: #job name
@@ -11,7 +11,7 @@ jobs:
           distribution: 'zulu' # See 'Supported distributions' for available options
           java-version: '18'
       - uses: Xotabu4/selenoid-github-action@v2 #for using selenoid
-      - run: ./gradlew clean test -Dselenide.remote=http://localhost:4444/wd/hub #run string
+      - run: ./gradlew clean test #run string
 
       #Allure Report
       #Tests history
