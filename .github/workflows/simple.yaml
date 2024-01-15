@@ -5,24 +5,24 @@ jobs:
   test: #job name
     runs-on: ubuntu-latest #where to run
     steps:
-      - uses: actions/checkout@v4 #checkout repo
-      - uses: actions/setup-java@v4 #setup java
+      - uses: actions/checkout@v3 #checkout repo
+      - uses: actions/setup-java@v3 #setup java
         with:
           distribution: 'zulu' # See 'Supported distributions' for available options
           java-version: '18'
-      - uses: Xotabu4/selenoid-github-action@v2 #for using selenoid
+      - uses: Xotabu4/selenoid-github-action@v3 #for using selenoid
       - run: ./gradlew clean test -Dselenide.remote=http://localhost:4444/wd/hub #run string
 
       #Allure Report
       #Tests history
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         if: always()
         continue-on-error: true
         with:
           ref: gh-pages
           path: gh-pages
       #Generate report
-      - uses: simple-elf/allure-report-action@master
+      - uses: simple-elf/allure-report-action@v1.7
         if: always()
         with:
           gh_pages: gh-pages
@@ -30,7 +30,7 @@ jobs:
           allure_report: allure-report
           allure_history: allure-history
       #Depoy report
-      - uses: peaceiris/actions-gh-pages@v2
+      - uses: peaceiris/actions-gh-pages@v3
         if: always()
         env:
           PERSONAL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
